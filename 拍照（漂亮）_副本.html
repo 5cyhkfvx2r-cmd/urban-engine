@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>油菜花拍照小程序</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { background-color: #f5f5f5; padding: 20px; display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
+        .photo-area { flex: 1; min-width: 300px; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .tip-box { background: #f0f8ff; border: 2px solid #87ceeb; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 16px; font-weight: bold; color: #2c3e50; }
+        .scene-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; }
+        .bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+        .camera-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 60%; border: 4px solid rgba(255,255,255,0.8); border-radius: 8px; pointer-events: none; z-index: 1; }
+        .camera-frame::before, .camera-frame::after, .camera-frame .corner { content: ''; position: absolute; width: 30px; height: 30px; border: 6px solid #fff; border-radius: 4px; }
+        .camera-frame::before { top: -6px; left: -6px; border-right: none; border-bottom: none; }
+        .camera-frame::after { top: -6px; right: -6px; border-left: none; border-bottom: none; }
+        .camera-frame .corner:nth-child(1) { bottom: -6px; left: -6px; border-right: none; border-top: none; }
+        .camera-frame .corner:nth-child(2) { bottom: -6px; right: -6px; border-left: none; border-top: none; }
+        .bench { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); width: 60%; height: 25%; display: flex; justify-content: space-around; align-items: flex-end; z-index: 2; }
+        .kid { position: relative; z-index: 3; width: 28%; height: 90%; cursor: pointer; transition: transform 0.2s; }
+        .kid.active { transform: scale(1.05); }
+        .kid img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .photo-btn { display: block; width: 160px; height: 50px; margin: 20px auto 0; background: linear-gradient(135deg, #ffb347, #ffcc33); border: none; border-radius: 25px; font-size: 20px; font-weight: bold; color: #fff; cursor: pointer; box-shadow: 0 4px 8px rgba(255,179,71,0.3); transition: all 0.2s; }
+        .photo-btn:hover { transform: translateY(-2px); }
+        .photo-btn:active { transform: translateY(0); }
+        .gallery-area { flex: 1; min-width: 300px; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .gallery-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+        .gallery-title { font-size: 20px; font-weight: bold; color: #2c3e50; }
+        .count-box { background: #e8f4f8; padding: 8px 16px; border-radius: 20px; font-size: 16px; font-weight: bold; color: #2980b9; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; max-height: 70vh; overflow-y: auto; padding: 10px; }
+        .photo-item { position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); aspect-ratio: 4/3; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+        .delete-btn { position: absolute; top: 5px; right: 5px; width: 28px; height: 28px; background: rgba(255,0,0,0.8); border: none; border-radius: 50%; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
+        .photo-item:hover .delete-btn { opacity: 1; }
+        .empty-tip { text-align: center; color: #999; padding: 40px 0; }
+    </style>
+</head>
+<body>
+<div class="photo-area">
+    <div class="tip-box">💡 先点一个小朋友，再点另一个交换位置</div>
+    <div class="scene-container" id="captureTarget">
+        <img src="https://pic.616pic.com/bg_w1180/00/07/12/MuxBfyy3Aw.jpg" alt="油菜花背景" class="bg-img" crossorigin="anonymous">
+        
+        <div class="camera-frame">
+            <div class="corner"></div>
+            <div class="corner"></div>
+        </div>
+
+        <div class="bench">
+            <div class="kid" data-id="1">
+                <img src="https://preview.qiantucdn.com/58pic/Yx/Dd/Wj/23/dk5gzqurx10omiwhfpcnyla37v89e6bt_PIC2018.png!w800" alt="红头发小女孩" crossorigin="anonymous">
+            </div>
+
+            <!-- 已替换：粉色机器人 -->
+            <div class="kid" data-id="2">
+                <img src="https://vcg05.cfp.cn/creative/vcg/nowarter800/new/VCG211244931097.jpg" alt="粉色机器人" crossorigin="anonymous">
+            </div>
+
+            <!-- 已替换：蓝色机器人 -->
+            <div class="kid" data-id="3">
+                <img src="https://t8.baidu.com/it/u=2690757753,3488086075&fm=193" alt="蓝色机器人" crossorigin="anonymous">
+            </div>
+        </div>
+    </div>
+
+    <button class="photo-btn" id="photoBtn">📸 拍照</button>
+</div>
+
+<div class="gallery-area">
+    <div class="gallery-header">
+        <h2 class="gallery-title">已拍照片</h2>
+        <div class="count-box" id="countBox">已拍：0 张</div>
+    </div>
+    <div class="photo-grid" id="photoGrid">
+        <div class="empty-tip">还没有拍照哦~</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+    const kids = Array.from(document.querySelectorAll('.kid'));
+    const photoBtn = document.getElementById('photoBtn');
+    const photoGrid = document.getElementById('photoGrid');
+    const countBox = document.getElementById('countBox');
+    const captureTarget = document.getElementById('captureTarget');
+    let photoCount = 0;
+    let selected = null;
+
+    kids.forEach((kid, index) => {
+        function handleSelect(e) {
+            e.preventDefault();
+            if (selected === null) {
+                selected = index;
+                kid.classList.add('active');
+            } else {
+                if (selected !== index) {
+                    [kids[selected].innerHTML, kids[index].innerHTML] = [kids[index].innerHTML, kids[selected].innerHTML];
+                }
+                kids[selected].classList.remove('active');
+                selected = null;
+            }
+        }
+        kid.addEventListener('mousedown', handleSelect);
+        kid.addEventListener('touchstart', handleSelect, { passive: false });
+    });
+
+    photoBtn.addEventListener('click', async () => {
+        photoBtn.disabled = true;
+        photoBtn.textContent = '处理中...';
+
+        try {
+            const canvas = await html2canvas(captureTarget, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: '#fff'
+            });
+
+            const imgUrl = canvas.toDataURL('image/png');
+            const photoItem = document.createElement('div');
+            photoItem.className = 'photo-item';
+            photoItem.innerHTML = `<img src="${imgUrl}" alt="拍照结果"><button class="delete-btn">×</button>`;
+
+            photoItem.querySelector('.delete-btn').onclick = () => {
+                photoItem.remove();
+                photoCount--;
+                updateCount();
+                checkEmpty();
+            };
+
+            if (photoGrid.querySelector('.empty-tip')) photoGrid.innerHTML = '';
+            photoGrid.appendChild(photoItem);
+            photoCount++;
+            updateCount();
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            photoBtn.disabled = false;
+            photoBtn.textContent = '📸 拍照';
+        }
+    });
+
+    function updateCount() {
+        countBox.textContent = `已拍：${photoCount} 张`;
+    }
+    function checkEmpty() {
+        if (photoCount === 0) photoGrid.innerHTML = '<div class="empty-tip">还没有拍照哦~</div>';
+    }
+</script>
+</body>
+</html>
